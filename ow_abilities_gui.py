@@ -48,25 +48,93 @@ class OverwatchAbilitiesGUI:
         self.create_display_tab_widgets()
 
     def create_add_tab_widgets(self):
-        # Labels and entry fields for hero name, ability, and key
+        # Labels and entry fields for hero name and ability
         self.hero_label = tk.Label(self.add_tab, text="Hero:")
-        self.hero_label.grid(row=0, column=0, sticky="e")
+        self.hero_label.grid(row=0, column=0, sticky="e", padx=5, pady=5)
         self.hero_entry = tk.Entry(self.add_tab)
-        self.hero_entry.grid(row=0, column=1)
+        self.hero_entry.grid(row=0, column=1, padx=5, pady=5)
 
         self.ability_label = tk.Label(self.add_tab, text="Ability:")
-        self.ability_label.grid(row=1, column=0, sticky="e")
+        self.ability_label.grid(row=1, column=0, sticky="e", padx=5, pady=5)
         self.ability_entry = tk.Entry(self.add_tab)
-        self.ability_entry.grid(row=1, column=1)
+        self.ability_entry.grid(row=1, column=1, padx=5, pady=5)
 
-        self.key_option = tk.StringVar()
-        self.key_option.set("Select Key")
-        self.key_optionbox = tk.OptionMenu(self.add_tab, self.key_option, *KEY_CODES.keys())
-        self.key_optionbox.grid(row=2, column=1)
+        self.key_label = tk.Label(self.add_tab, text="Key:")
+        self.key_label.grid(row=1, column=2, sticky="e", padx=5, pady=5)
+        self.selected_key = tk.StringVar(self.add_tab)
+        self.selected_key.set("Select Key")
+        self.key_option_menu = tk.OptionMenu(self.add_tab, self.selected_key, *KEY_CODES.keys())
+        self.key_option_menu.grid(row=1, column=3, padx=5, pady=5)
 
-        # Button to add hero abilities
+        # Button to add more ability and key fields
+        self.add_more_button = tk.Button(self.add_tab, text="Add More Abilities", command=self.add_more_fields)
+        self.add_more_button.grid(row=2, column=1, columnspan=2, pady=5)
+
+        # Button to add ability
         self.add_button = tk.Button(self.add_tab, text="Add Ability", command=self.add_ability)
-        self.add_button.grid(row=3, columnspan=2)
+        self.add_button.grid(row=3, column=1, columnspan=2, pady=10)
+
+    def add_more_fields(self):
+        # Add additional ability and key fields
+        row_num = len(self.add_tab.grid_slaves()) // 2
+        ability_label = tk.Label(self.add_tab, text="Ability:")
+        ability_label.grid(row=row_num, column=0, sticky="e", padx=5, pady=5)
+        ability_entry = tk.Entry(self.add_tab)
+        ability_entry.grid(row=row_num, column=1, padx=5, pady=5)
+
+        key_label = tk.Label(self.add_tab, text="Key:")
+        key_label.grid(row=row_num, column=2, sticky="e", padx=5, pady=5)
+        selected_key = tk.StringVar(self.add_tab)
+        selected_key.set("Select Key")
+        key_option_menu = tk.OptionMenu(self.add_tab, selected_key, *KEY_CODES.keys())
+        key_option_menu.grid(row=row_num, column=3, padx=5, pady=5)
+
+        self.add_more_button.grid(row=row_num + 1, column=1, columnspan=2, pady=5)
+        self.add_button.grid(row=row_num + 2, column=1, columnspan=2, pady=10)
+
+
+
+
+
+    def add_ability(self):
+        hero = self.hero_entry.get()
+        abilities = []
+        keys = []
+
+        # Collect all abilities and keys entered by the user
+        abilities.append(self.ability_entry.get())
+        keys.append(self.selected_key.get())  # Change to use selected_key instead of key_entry
+
+        for widget in self.add_tab.grid_slaves():
+            if isinstance(widget, tk.Entry):
+                if widget != self.ability_entry and widget != self.selected_key:  # Adjusted condition
+                    if widget.grid_info()["row"] % 2 == 0:  # Ability entry
+                        abilities.append(widget.get())
+                    else:  # Key entry
+                        keys.append(widget.get())
+
+        # Check if all fields are filled
+        if hero and all(abilities) and all(keys) and "Select Key" not in keys:
+            if hero:
+                if hero not in self.overwatch_abilities:
+                    self.overwatch_abilities[hero] = {}
+                for ability, key in zip(abilities, keys):
+                    if key in KEY_CODES:
+                        if key not in self.overwatch_abilities[hero].values():
+                            self.overwatch_abilities[hero][ability] = KEY_CODES[key]
+                            self.save_config()
+                        else:
+                            messagebox.showerror("Error", f"Key {key} already assigned to another ability.")
+                    else:
+                        messagebox.showerror("Error", f"Invalid key: {key}. Please use keys from KEY_CODES.")
+                messagebox.showinfo("Info", f"Abilities added for {hero}: {', '.join(abilities)}")
+                self.update_tab_view()
+            else:
+                messagebox.showerror("Error", "Please fill in Hero field.")
+        else:
+            messagebox.showerror("Error", "Please fill in all fields.")
+
+
 
     def create_display_tab_widgets(self):
         # Counter for positioning frames horizontally and vertically
@@ -85,12 +153,12 @@ class OverwatchAbilitiesGUI:
             
             # Increment the column counter, and move to the next row if we've reached 5 columns
             column_counter += 1
-            if column_counter == 5:
+            if column_counter == 4:
                 column_counter = 0
                 row_counter += 1
 
         # Set the column weight to make the frames take up equal space
-        for i in range(5):
+        for i in range(4):
             self.display_tab.grid_columnconfigure(i, weight=1)
 
         # Set the max width of the root window to 800 pixels
@@ -108,25 +176,6 @@ class OverwatchAbilitiesGUI:
         with open("overwatch_config.pickle", "wb") as file:
             pickle.dump(self.overwatch_abilities, file)
         messagebox.showinfo("Info", "Config saved successfully.")
-        self.update_tab_view()
-
-    def add_ability(self):
-        hero = self.hero_entry.get()
-        ability = self.ability_entry.get()
-        key = self.key_option.get()
-
-        if hero and ability and key != "Select Key":
-            if hero not in self.overwatch_abilities:
-                self.overwatch_abilities[hero] = {}
-            if key not in self.overwatch_abilities[hero].values():
-                self.overwatch_abilities[hero][ability] = KEY_CODES[key]
-                messagebox.showinfo("Info", f"Ability added for {hero}: {ability} - {key}")
-            else:
-                messagebox.showerror("Error", "Key already assigned to another ability.")
-        else:
-            messagebox.showerror("Error", "Please fill in all fields.")
-
-        self.update_tab_view()
 
     def update_tab_view(self):
         for tab in self.tab_control.tabs():
