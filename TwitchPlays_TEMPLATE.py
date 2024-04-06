@@ -95,14 +95,14 @@ controller = FPSController()
 #controller = FPSController(mode='HoldAndReleaseKey')
 
 # Set actions and corresponding keys
-controller.set_action("forward", W)
-controller.set_action("backward", S)
-controller.set_action("left", A)
-controller.set_action("right", D)
-controller.set_action("ability1", F)
-controller.set_action("ability2", E)
-controller.set_action("ability3", Q)
-controller.set_action("ultimate", R)
+#controller.set_action("forward", W)
+#controller.set_action("backward", S)
+#controller.set_action("left", A)
+#controller.set_action("right", D)
+#controller.set_action("ability1", F)
+#controller.set_action("ability2", E)
+#controller.set_action("ability3", Q)
+#controller.set_action("ultimate", R)
 
 
 while True:
@@ -138,7 +138,7 @@ while True:
     else:
         for message in messages_to_handle:
             if len(active_tasks) <= MAX_WORKERS:
-                active_tasks.append(thread_pool.submit(handle_message, message))
+                active_tasks.append(thread_pool.submit(controller.handle_message, message))
             else:
                 print(f'WARNING: active tasks ({len(active_tasks)}) exceeds number of workers ({MAX_WORKERS}). ({len(message_queue)} messages in the queue)')
  
