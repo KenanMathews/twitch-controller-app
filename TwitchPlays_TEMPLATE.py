@@ -5,6 +5,7 @@ import pydirectinput
 import pyautogui
 import TwitchPlays_Connection
 from TwitchPlays_KeyCodes import *
+from overwatch_abilites import OverwatchAbilities
 
 ##################### GAME VARIABLES #####################
 
@@ -59,51 +60,13 @@ else:
     t = TwitchPlays_Connection.YouTube()
     t.youtube_connect(YOUTUBE_CHANNEL_ID, YOUTUBE_STREAM_URL)
 
-# fps_controller.py
-
-class FPSController:
-    def __init__(self, mode='HoldKey'):
-        self.actions = {}
-        self.mode = mode
-
-    def set_action(self, action_name, key):
-        self.actions[action_name] = key
-
-    def handle_message(self, message):
-        try:
-            msg = message['message'].lower()
-            username = message['username'].lower()
-
-            print("Got this message from " + username + ": " + msg)
-
-            if msg in self.actions:
-                if msg == "stop" and self.mode == 'HoldAndReleaseKey':
-                    # Release all movement keys
-                    for action in ['forward', 'backward', 'left', 'right']:
-                        if action in self.actions:
-                            ReleaseKey(self.actions[action])
-                else:
-                    if self.mode == 'HoldKey':
-                        HoldKey(self.actions[msg])
-                    elif self.mode == 'HoldAndReleaseKey':
-                        HoldAndReleaseKey(self.actions[msg], 0.5)  # Adjust the duration as needed
-
-        except Exception as e:
-            print("Encountered exception: " + str(e))
-
-controller = FPSController()
-#controller = FPSController(mode='HoldAndReleaseKey')
-
-# Set actions and corresponding keys
-#controller.set_action("forward", W)
-#controller.set_action("backward", S)
-#controller.set_action("left", A)
-#controller.set_action("right", D)
-#controller.set_action("ability1", F)
-#controller.set_action("ability2", E)
-#controller.set_action("ability3", Q)
-#controller.set_action("ultimate", R)
-
+controller = OverwatchAbilities(mode="HoldAndReleaseKey")
+controller.set_action("forward",W)
+controller.set_action("backward", S)
+controller.set_action("left", A)
+controller.set_action("right", D)
+controller.load_config()
+controller.set_all_hero_abilities()
 
 while True:
 

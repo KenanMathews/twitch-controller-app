@@ -59,26 +59,42 @@ class OverwatchAbilitiesGUI:
         self.ability_entry = tk.Entry(self.add_tab)
         self.ability_entry.grid(row=1, column=1)
 
-        self.key_label = tk.Label(self.add_tab, text="Key:")
-        self.key_label.grid(row=2, column=0, sticky="e")
-        self.key_entry = tk.Entry(self.add_tab)
-        self.key_entry.grid(row=2, column=1)
+        self.key_option = tk.StringVar()
+        self.key_option.set("Select Key")
+        self.key_optionbox = tk.OptionMenu(self.add_tab, self.key_option, *KEY_CODES.keys())
+        self.key_optionbox.grid(row=2, column=1)
 
         # Button to add hero abilities
         self.add_button = tk.Button(self.add_tab, text="Add Ability", command=self.add_ability)
         self.add_button.grid(row=3, columnspan=2)
 
     def create_display_tab_widgets(self):
+        # Counter for positioning frames horizontally and vertically
+        column_counter = 0
+        row_counter = 0
+        
         # Create a frame for each hero and their abilities
         for hero, abilities in self.overwatch_abilities.items():
             frame = ttk.Frame(self.display_tab)
-            frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+            frame.grid(row=row_counter, column=column_counter, padx=10, pady=10, sticky="nsew")
             ttk.Label(frame, text=hero, font=("Arial", 12, "bold")).grid(row=0, columnspan=2)
             row = 1
             for ability, key in abilities.items():
-                ttk.Label(frame, text=f"{ability}: {key}").grid(row=row, column=0, sticky="w")
+                ttk.Label(frame, text=f"{ability}: {find_key_by_value(key,KEY_CODES)}").grid(row=row, column=0, sticky="w")
                 row += 1
+            
+            # Increment the column counter, and move to the next row if we've reached 5 columns
+            column_counter += 1
+            if column_counter == 5:
+                column_counter = 0
+                row_counter += 1
 
+        # Set the column weight to make the frames take up equal space
+        for i in range(5):
+            self.display_tab.grid_columnconfigure(i, weight=1)
+
+        # Set the max width of the root window to 800 pixels
+        self.master.geometry("800x600")
 
     def load_config(self):
         try:
@@ -120,7 +136,12 @@ class OverwatchAbilitiesGUI:
             frame = ttk.Frame(self.tab_control)
             self.tab_control.add(frame, text=hero)
             for index, (ability, key_code) in enumerate(abilities.items(), start=1):
-                tk.Label(frame, text=f"{ability}: {key_code}").grid(row=index, column=0, sticky="w")
+                tk.Label(frame, text=f"{ability}: {find_key_by_value(key_code,KEY_CODES)}").grid(row=index, column=0, sticky="w")
+def find_key_by_value(value, key_codes):
+    for key, val in key_codes.items():
+        if val == value:
+            return key
+    return None
 
 def main():
     root = tk.Tk()
