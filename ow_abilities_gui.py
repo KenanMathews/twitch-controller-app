@@ -33,37 +33,52 @@ class OverwatchAbilitiesGUI:
         self.create_widgets()
 
     def create_widgets(self):
+        # Create a tabbed view for adding abilities and showing the saved data
+        self.tab_control = ttk.Notebook(self.master)
+        self.tab_control.grid(row=0, column=0, columnspan=2)
+
+        # Tab for adding abilities
+        self.add_tab = ttk.Frame(self.tab_control)
+        self.tab_control.add(self.add_tab, text="Add Abilities")
+        self.create_add_tab_widgets()
+
+        # Tab for displaying saved data
+        self.display_tab = ttk.Frame(self.tab_control)
+        self.tab_control.add(self.display_tab, text="Saved Data")
+        self.create_display_tab_widgets()
+
+    def create_add_tab_widgets(self):
         # Labels and entry fields for hero name, ability, and key
-        self.hero_label = tk.Label(self.master, text="Hero:")
+        self.hero_label = tk.Label(self.add_tab, text="Hero:")
         self.hero_label.grid(row=0, column=0, sticky="e")
-        self.hero_entry = tk.Entry(self.master)
+        self.hero_entry = tk.Entry(self.add_tab)
         self.hero_entry.grid(row=0, column=1)
 
-        self.ability_label = tk.Label(self.master, text="Ability:")
+        self.ability_label = tk.Label(self.add_tab, text="Ability:")
         self.ability_label.grid(row=1, column=0, sticky="e")
-        self.ability_entry = tk.Entry(self.master)
+        self.ability_entry = tk.Entry(self.add_tab)
         self.ability_entry.grid(row=1, column=1)
 
-        self.key_label = tk.Label(self.master, text="Key:")
+        self.key_label = tk.Label(self.add_tab, text="Key:")
         self.key_label.grid(row=2, column=0, sticky="e")
-        self.key_option = tk.StringVar()
-        self.key_option.set("Select Key")
-        self.key_optionbox = tk.OptionMenu(self.master, self.key_option, *KEY_CODES.keys())
-        self.key_optionbox.grid(row=2, column=1)
+        self.key_entry = tk.Entry(self.add_tab)
+        self.key_entry.grid(row=2, column=1)
 
         # Button to add hero abilities
-        self.add_button = tk.Button(self.master, text="Add Ability", command=self.add_ability)
+        self.add_button = tk.Button(self.add_tab, text="Add Ability", command=self.add_ability)
         self.add_button.grid(row=3, columnspan=2)
 
-        # Button to save config
-        self.save_button = tk.Button(self.master, text="Save Config", command=self.save_config)
-        self.save_button.grid(row=4, columnspan=2)
+    def create_display_tab_widgets(self):
+        # Create a frame for each hero and their abilities
+        for hero, abilities in self.overwatch_abilities.items():
+            frame = ttk.Frame(self.display_tab)
+            frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+            ttk.Label(frame, text=hero, font=("Arial", 12, "bold")).grid(row=0, columnspan=2)
+            row = 1
+            for ability, key in abilities.items():
+                ttk.Label(frame, text=f"{ability}: {key}").grid(row=row, column=0, sticky="w")
+                row += 1
 
-        # Create a tabbed view for showing the loaded config data
-        self.tab_control = ttk.Notebook(self.master)
-        self.tab_control.grid(row=5, columnspan=2)
-
-        self.update_tab_view()
 
     def load_config(self):
         try:
